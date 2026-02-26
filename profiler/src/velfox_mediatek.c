@@ -90,13 +90,11 @@ void mediatek_esport() {
     }
     
     // Disable GPU Power limiter
-    if (file_exists("/proc/gpufreq/gpufreq_power_limited")) {
-        apply("ignore_batt_oc 1", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_batt_percent 1", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_low_batt 1", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_thermal_protect 1", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_pbm_limited 1", "/proc/gpufreq/gpufreq_power_limited");
-    }
+    apply("ignore_batt_oc 1", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_batt_percent 1", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_low_batt 1", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_thermal_protect 1", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_pbm_limited 1", "/proc/gpufreq/gpufreq_power_limited");
     
     // Disable battery current limiter
     apply("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
@@ -116,8 +114,8 @@ void mediatek_esport() {
     apply("0", "/sys/kernel/eara_thermal/enable");
 }
 
-// Adaptive Mode
-void mediatek_adaptive() {
+// Balanced Mode
+void mediatek_balanced() {
     // PPM policies
     if (file_exists("/proc/ppm/policy_status")) {
         FILE *fp = fopen("/proc/ppm/policy_status", "r");
@@ -179,13 +177,11 @@ void mediatek_adaptive() {
     apply_ll(min_oppfreq, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
     
     // GPU Power limiter
-    if (file_exists("/proc/gpufreq/gpufreq_power_limited")) {
-        apply("ignore_batt_oc 0", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_batt_percent 0", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_low_batt 0", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_thermal_protect 0", "/proc/gpufreq/gpufreq_power_limited");
-        apply("ignore_pbm_limited 0", "/proc/gpufreq/gpufreq_power_limited");
-    }
+    apply("ignore_batt_oc 0", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_batt_percent 0", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_low_batt 0", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_thermal_protect 0", "/proc/gpufreq/gpufreq_power_limited");
+    apply("ignore_pbm_limited 0", "/proc/gpufreq/gpufreq_power_limited");
     
     // Enable battery current limiter
     apply("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");

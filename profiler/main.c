@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
         printf("Modes:\n");
         printf("  0 - Common tweaks\n");
         printf("  1 - Esport mode\n");
-        printf("  2 - Adaptive mode\n");
+        printf("  2 - Balanced mode\n");
         printf("  3 - Efficiency mode\n");
         return 1;
     }
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
             break;
         case 2:
             perfcommon();
-            adaptive_mode();
+            balanced_mode();
             break;
         case 3:
             perfcommon();

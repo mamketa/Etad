@@ -41,8 +41,8 @@ void unisoc_esport() {
     }
 }
 
-// Adaptive mode
-void unisoc_adaptive() {
+// Balanced mode
+void unisoc_balanced() {
     // GPU Frequency
     DIR *dir = opendir("/sys/class/devfreq");
     if (dir) {

@@ -55,7 +55,7 @@ typedef enum : char {
 typedef enum : char {
     PERFCOMMON,
     ESPORT_MODE,
-    ADAPTIVE_MODE,
+    BALANCED_MODE,
     EFFICIENCY_MODE
 } ProfileMode;
 

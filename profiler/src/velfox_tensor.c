@@ -78,8 +78,8 @@ void tensor_esport() {
     }
 }
 
-// Adaptive mode
-void tensor_adaptive() {
+// Balanced mode
+void tensor_balanced() {
     // Find GPU path
     DIR *dir = opendir("/sys/devices/platform");
     if (dir) {

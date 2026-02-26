@@ -80,8 +80,8 @@ void exynos_esport() {
     }
 }
 
-// Adaptive mode
-void exynos_adaptive() {
+// Balanced mode
+void exynos_balanced() {
     // GPU Frequency
     const char *gpu_path = "/sys/kernel/gpu";
     if (file_exists(gpu_path)) {

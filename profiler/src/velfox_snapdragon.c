@@ -81,8 +81,8 @@ void snapdragon_esport() {
     apply("1", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
 }
 
-// Adaptive mode
-void snapdragon_adaptive() {
+// Balanced mode
+void snapdragon_balanced() {
     // Qualcomm CPU Bus and DRAM frequencies
     if (DEVICE_MITIGATION == 0) {
         DIR *dir = opendir("/sys/class/devfreq");

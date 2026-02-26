@@ -30,15 +30,12 @@ void read_configs() {
     char soc_path[MAX_PATH_LEN];
     snprintf(soc_path, sizeof(soc_path), "%s/soc_recognition", MODULE_CONFIG);
     SOC = read_int_from_file(soc_path);
-    
     char lite_path[MAX_PATH_LEN];
     snprintf(lite_path, sizeof(lite_path), "%s/lite_mode", MODULE_CONFIG);
     LITE_MODE = read_int_from_file(lite_path);
-    
     char ppm_path[MAX_PATH_LEN];
     snprintf(ppm_path, sizeof(ppm_path), "%s/ppm_policies_mediatek", MODULE_CONFIG);
     read_string_from_file(PPM_POLICY, sizeof(PPM_POLICY), ppm_path);
-    
     char custom_gov_path[MAX_PATH_LEN];
     snprintf(custom_gov_path, sizeof(custom_gov_path), "%s/custom_default_cpu_gov", MODULE_CONFIG);
     if (file_exists(custom_gov_path)) {
@@ -48,7 +45,6 @@ void read_configs() {
         snprintf(default_gov_path, sizeof(default_gov_path), "%s/default_cpu_gov", MODULE_CONFIG);
         read_string_from_file(DEFAULT_CPU_GOV, sizeof(DEFAULT_CPU_GOV), default_gov_path);
     }
-    
     char mitigation_path[MAX_PATH_LEN];
     snprintf(mitigation_path, sizeof(mitigation_path), "%s/device_mitigation", MODULE_CONFIG);
     DEVICE_MITIGATION = read_int_from_file(mitigation_path);
@@ -175,22 +171,7 @@ void esport_mode() {
         set_dnd(1);
     }
                 
-    // Disable battery saver module
-    if (file_exists("/sys/module/battery_saver/parameters/enabled")) {
-        FILE *fp = fopen("/sys/module/battery_saver/parameters/enabled", "r");
-        if (fp) {
-            char line[10];
-            if (fgets(line, sizeof(line), fp)) {
-                if (atoi(line) != 0) {
-                    apply("0", "/sys/module/battery_saver/parameters/enabled");
-                } else if (line[0] == 'Y' || line[0] == 'y') {
-                    apply("N", "/sys/module/battery_saver/parameters/enabled");
-                }
-            }
-            fclose(fp);
-        }
-    }
-    
+    // Disable battery saver
     apply("N", "/sys/module/workqueue/parameters/power_efficient");
     
     // Disable split lock mitigation
@@ -234,9 +215,25 @@ void esport_mode() {
     // System Core
     apply("512", "/dev/cpuctl/system/cpu.shares");
     
+    // Strongly limit background burst
+    apply("128", "/dev/cpuctl/background/cpu.uclamp.max");
+    apply("128", "/dev/cpuctl/system-background/cpu.uclamp.max");
+    apply("128", "/dev/cpuctl/restricted-background/cpu.uclamp.max");
+
+    // Guarantee top-app minimum
+    apply("256", "/sys/fs/cgroup/uclamp/top-app.uclamp.min");
+    apply("128", "/sys/fs/cgroup/uclamp/foreground.uclamp.min");
+
+    // Keep background minimal baseline
+    apply("32", "/sys/fs/cgroup/uclamp/background.uclamp.min");
+    
     // Sched Boost
     apply("1", "/proc/sys/kernel/sched_boost");
-          
+    
+    // Sched Boost Old
+    apply("1", "/dev/stune/top-app/schedtune.prefer_idle");
+    apply("1", "/dev/stune/top-app/schedtune.boost");          
+    
     // Improve real time latencies
     apply("32", "/proc/sys/kernel/sched_nr_migrate");
     
@@ -255,26 +252,17 @@ void esport_mode() {
     apply("50000",  "/proc/sys/kernel/sched_migration_cost_ns");
     apply("800000", "/proc/sys/kernel/sched_min_granularity_ns");
     apply("900000", "/proc/sys/kernel/sched_wakeup_granularity_ns");
-      
-    if (file_exists("/sys/kernel/debug/sched_features")) {
-        apply("NEXT_BUDDY", "/sys/kernel/debug/sched_features");
-        apply("NO_TTWU_QUEUE", "/sys/kernel/debug/sched_features");
-    }
     
-    if (file_exists("/dev/stune/top-app/schedtune.prefer_idle")) {
-        apply("1", "/dev/stune/top-app/schedtune.prefer_idle");
-        apply("1", "/dev/stune/top-app/schedtune.boost");
-    }
-        
+    // Sched Features
+    apply("NEXT_BUDDY", "/sys/kernel/debug/sched_features");
+    apply("NO_TTWU_QUEUE", "/sys/kernel/debug/sched_features");
+            
     // Oppo/Oplus/Realme Touchpanel
-    const char *tp_path = "/proc/touchpanel";
-    if (file_exists(tp_path)) {
-        apply("1", "/proc/touchpanel/game_switch_enable");
-        apply("0", "/proc/touchpanel/oplus_tp_limit_enable");
-        apply("0", "/proc/touchpanel/oppo_tp_limit_enable");
-        apply("1", "/proc/touchpanel/oplus_tp_direction");
-        apply("1", "/proc/touchpanel/oppo_tp_direction");
-    }
+    apply("1", "/proc/touchpanel/game_switch_enable");
+    apply("0", "/proc/touchpanel/oplus_tp_limit_enable");
+    apply("0", "/proc/touchpanel/oppo_tp_limit_enable");
+    apply("1", "/proc/touchpanel/oplus_tp_direction");
+    apply("1", "/proc/touchpanel/oppo_tp_direction");
     
     // eMMC and UFS frequency
     DIR *dir = opendir("/sys/class/devfreq");
@@ -282,10 +270,14 @@ void esport_mode() {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             char *name = ent->d_name;
-            if (strstr(name, ".ufshc") || strstr(name, "mmc")) {
+            if (
+                strstr(name, "ufshc") ||
+                strstr(name, "mmc") ||
+                strstr(name, "memlat") ||
+                strstr(name, "cpubw")
+                ) {
                 char path[MAX_PATH_LEN];
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", name);
-                
                 if (LITE_MODE == 1) {
                     devfreq_mid_perf(path);
                 } else {
@@ -347,6 +339,10 @@ void esport_mode() {
         }
         closedir(dir);
     }
+    
+    system("settings put system peak_refresh_rate 999");
+    system("settings put system min_refresh_rate 999");
+    system("settings put global low_power 0");
         
     // SOC-specific esport tweaks
     switch (SOC) {
@@ -358,29 +354,14 @@ void esport_mode() {
     }
 }
 
-void adaptive_mode() {
+void balanced_mode() {
     char dnd_path[MAX_PATH_LEN];
     snprintf(dnd_path, sizeof(dnd_path), "%s/dnd_gameplay", MODULE_CONFIG);
     if (read_int_from_file(dnd_path) == 1) {
         set_dnd(0);
     }
     
-    // Disable battery saver module
-    if (file_exists("/sys/module/battery_saver/parameters/enabled")) {
-        FILE *fp = fopen("/sys/module/battery_saver/parameters/enabled", "r");
-        if (fp) {
-            char line[10];
-            if (fgets(line, sizeof(line), fp)) {
-                if (atoi(line) != 0) {
-                    apply("0", "/sys/module/battery_saver/parameters/enabled");
-                } else if (line[0] == 'Y' || line[0] == 'y') {
-                    apply("N", "/sys/module/battery_saver/parameters/enabled");
-                }
-            }
-            fclose(fp);
-        }
-    }
-    
+    // Disable battery saver
     apply("N", "/sys/module/workqueue/parameters/power_efficient");
     
     // Enable split lock mitigation
@@ -424,8 +405,24 @@ void adaptive_mode() {
     // System Core
     apply("512", "/dev/cpuctl/system/cpu.shares");
 
+    // Moderate background restriction
+    apply("256", "/dev/cpuctl/background/cpu.uclamp.max");
+    apply("256", "/dev/cpuctl/system-background/cpu.uclamp.max");
+    apply("256", "/dev/cpuctl/restricted-background/cpu.uclamp.max");
+
+    // Balanced minimum floor
+    apply("192", "/sys/fs/cgroup/uclamp/top-app.uclamp.min");
+    apply("96",  "/sys/fs/cgroup/uclamp/foreground.uclamp.min");
+
+    // Keep backgroundl baseline
+    apply("32",  "/sys/fs/cgroup/uclamp/background.uclamp.min");
+
     // Sched Boost
     apply("0", "/proc/sys/kernel/sched_boost");
+    
+    // Sched Boost old
+    apply("0", "/dev/stune/top-app/schedtune.prefer_idle");
+    apply("1", "/dev/stune/top-app/schedtune.boost");
     
     // Scheduler Timeslice
     apply("6", "/proc/sys/kernel/sched_rr_timeslice_ms");
@@ -446,25 +443,16 @@ void adaptive_mode() {
     apply("1200000", "/proc/sys/kernel/sched_min_granularity_ns");
     apply("2000000", "/proc/sys/kernel/sched_wakeup_granularity_ns");
     
-    if (file_exists("/sys/kernel/debug/sched_features")) {
-        apply("NEXT_BUDDY", "/sys/kernel/debug/sched_features");
-        apply("TTWU_QUEUE", "/sys/kernel/debug/sched_features");
-    }
-    
-    if (file_exists("/dev/stune/top-app/schedtune.prefer_idle")) {
-        apply("0", "/dev/stune/top-app/schedtune.prefer_idle");
-        apply("1", "/dev/stune/top-app/schedtune.boost");
-    }
-    
+    // Sched Features
+    apply("NEXT_BUDDY", "/sys/kernel/debug/sched_features");
+    apply("TTWU_QUEUE", "/sys/kernel/debug/sched_features");
+        
     // Oppo/Oplus/Realme Touchpanel
-    const char *tp_path = "/proc/touchpanel";
-    if (file_exists(tp_path)) {
-        apply("0", "/proc/touchpanel/game_switch_enable");
-        apply("1", "/proc/touchpanel/oplus_tp_limit_enable");
-        apply("1", "/proc/touchpanel/oppo_tp_limit_enable");
-        apply("0", "/proc/touchpanel/oplus_tp_direction");
-        apply("0", "/proc/touchpanel/oppo_tp_direction");
-    }
+    apply("0", "/proc/touchpanel/game_switch_enable");
+    apply("1", "/proc/touchpanel/oplus_tp_limit_enable");
+    apply("1", "/proc/touchpanel/oppo_tp_limit_enable");
+    apply("0", "/proc/touchpanel/oplus_tp_direction");
+    apply("0", "/proc/touchpanel/oppo_tp_direction");
     
     // eMMC and UFS frequency
     DIR *dir = opendir("/sys/class/devfreq");
@@ -472,7 +460,12 @@ void adaptive_mode() {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             char *name = ent->d_name;
-            if (strstr(name, ".ufshc") || strstr(name, "mmc")) {
+            if (
+                strstr(name, "ufshc") ||
+                strstr(name, "mmc") ||
+                strstr(name, "memlat") ||
+                strstr(name, "cpubw")
+                ) {
                 char path[MAX_PATH_LEN];
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", name);
                 devfreq_unlock(path);
@@ -526,14 +519,18 @@ void adaptive_mode() {
         }
         closedir(dir);
     }
+    
+    system("settings put system peak_refresh_rate 0");
+    system("settings put system min_refresh_rate 0");
+    system("settings put global low_power 0");
        
-    // SOC-specific adaptive tweaks
+    // SOC-specific balanced tweaks
     switch (SOC) {
-        case 1: mediatek_adaptive(); break;
-        case 2: snapdragon_adaptive(); break;
-        case 3: exynos_adaptive(); break;
-        case 4: unisoc_adaptive(); break;
-        case 5: tensor_adaptive(); break;
+        case 1: mediatek_balanced(); break;
+        case 2: snapdragon_balanced(); break;
+        case 3: exynos_balanced(); break;
+        case 4: unisoc_balanced(); break;
+        case 5: tensor_balanced(); break;
     }
 }
 
@@ -545,21 +542,6 @@ void efficiency_mode() {
     }    
 
     // Enable battery saver module
-    if (file_exists("/sys/module/battery_saver/parameters/enabled")) {
-        FILE *fp = fopen("/sys/module/battery_saver/parameters/enabled", "r");
-        if (fp) {
-            char line[10];
-            if (fgets(line, sizeof(line), fp)) {
-                if (atoi(line) == 0) {
-                    apply("1", "/sys/module/battery_saver/parameters/enabled");
-                } else if (line[0] == 'N' || line[0] == 'n') {
-                    apply("Y", "/sys/module/battery_saver/parameters/enabled");
-                }
-            }
-            fclose(fp);
-        }
-    }
-    
     apply("Y", "/sys/module/workqueue/parameters/power_efficient");
     
     // Enable split lock mitigation
@@ -603,8 +585,24 @@ void efficiency_mode() {
     // System Core
     apply("384", "/dev/cpuctl/system/cpu.shares");
     
+    // Keep background controlled
+    apply("128", "/dev/cpuctl/background/cpu.uclamp.max");
+    apply("128", "/dev/cpuctl/system-background/cpu.uclamp.max");
+    apply("128", "/dev/cpuctl/restricted-background/cpu.uclamp.max");
+
+    // Lower performance floor
+    apply("128", "/sys/fs/cgroup/uclamp/top-app.uclamp.min");
+    apply("64",  "/sys/fs/cgroup/uclamp/foreground.uclamp.min");
+
+    // Keep background baseline
+    apply("16",  "/sys/fs/cgroup/uclamp/background.uclamp.min"); 
+    
     // Sched Boost
     apply("0", "/proc/sys/kernel/sched_boost");
+    
+    // Sched Boost Old
+    apply("1", "/dev/stune/top-app/schedtune.prefer_idle");
+    apply("0", "/dev/stune/top-app/schedtune.boost");
     
     // Scheduler Timeslice
     apply("10", "/proc/sys/kernel/sched_rr_timeslice_ms");
@@ -625,25 +623,16 @@ void efficiency_mode() {
     apply("2000000", "/proc/sys/kernel/sched_min_granularity_ns");
     apply("3000000", "/proc/sys/kernel/sched_wakeup_granularity_ns");
     
-    if (file_exists("/sys/kernel/debug/sched_features")) {
-        apply("NO_NEXT_BUDDY", "/sys/kernel/debug/sched_features");
-        apply("TTWU_QUEUE", "/sys/kernel/debug/sched_features");
-    }
-    
-    if (file_exists("/dev/stune/top-app/schedtune.prefer_idle")) {
-        apply("1", "/dev/stune/top-app/schedtune.prefer_idle");
-        apply("0", "/dev/stune/top-app/schedtune.boost");
-    }
-    
+    // Sched Features
+    apply("NO_NEXT_BUDDY", "/sys/kernel/debug/sched_features");
+    apply("TTWU_QUEUE", "/sys/kernel/debug/sched_features");
+        
     // Oppo/Oplus/Realme Touchpanel
-    const char *tp_path = "/proc/touchpanel";
-    if (file_exists(tp_path)) {
-        apply("0", "/proc/touchpanel/game_switch_enable");
-        apply("1", "/proc/touchpanel/oplus_tp_limit_enable");
-        apply("1", "/proc/touchpanel/oppo_tp_limit_enable");
-        apply("0", "/proc/touchpanel/oplus_tp_direction");
-        apply("0", "/proc/touchpanel/oppo_tp_direction");
-    }
+    apply("0", "/proc/touchpanel/game_switch_enable");
+    apply("1", "/proc/touchpanel/oplus_tp_limit_enable");
+    apply("1", "/proc/touchpanel/oppo_tp_limit_enable");
+    apply("0", "/proc/touchpanel/oplus_tp_direction");
+    apply("0", "/proc/touchpanel/oppo_tp_direction");
         
     // eMMC and UFS frequency
     DIR *dir = opendir("/sys/class/devfreq");
@@ -651,7 +640,12 @@ void efficiency_mode() {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             char *name = ent->d_name;
-            if (strstr(name, ".ufshc") || strstr(name, "mmc")) {
+            if (
+                strstr(name, "ufshc") ||
+                strstr(name, "mmc") ||
+                strstr(name, "memlat") ||
+                strstr(name, "cpubw")
+                ) {
                 char path[MAX_PATH_LEN];
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", name);
                 devfreq_min_perf(path);
@@ -704,6 +698,10 @@ void efficiency_mode() {
         }
         closedir(dir);
     }
+    
+    system("settings put system peak_refresh_rate 0");
+    system("settings put system min_refresh_rate 0");
+    system("settings put global low_power 1");
             
     // SOC-specific efficiency tweaks
     switch (SOC) {

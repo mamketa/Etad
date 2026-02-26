@@ -195,14 +195,14 @@ int main(int argc, char* argv[]) {
             log_velfox(LOG_INFO, "Activating efficiency mode");
         } else {
             // Bail out if we already on normal profile
-            if (cur_mode == ADAPTIVE_MODE)
+            if (cur_mode == BALANCED_MODE)
                 continue;
 
-            cur_mode = ADAPTIVE_MODE;
+            cur_mode = BALANCED_MODE;
             need_profile_checkup = false;
-            toast("Activating adaptive mode");
-            run_profiler(ADAPTIVE_MODE);
-            log_velfox(LOG_INFO, "Activating adaptive mode");
+            toast("Activating balanced mode");
+            run_profiler(BALANCED_MODE);
+            log_velfox(LOG_INFO, "Activating balanced mode");
         }
     }
 
