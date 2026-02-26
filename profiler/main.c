@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         printf("Usage: %s <mode>\n", argv[0]);
         printf("Modes:\n");
         printf("  0 - Common tweaks\n");
-        printf("  1 - Apex mode\n");
+        printf("  1 - Esport mode\n");
         printf("  2 - Adaptive mode\n");
         printf("  3 - Efficiency mode\n");
         return 1;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
             break;
         case 1:
             perfcommon();
-            apex_mode();
+            esport_mode();
             break;
         case 2:
             perfcommon();

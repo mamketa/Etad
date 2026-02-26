@@ -167,7 +167,7 @@ void perfcommon() {
     }
 }
 
-void apex_mode() {
+void esport_mode() {
     // Enable Do not Disturb
     char dnd_path[MAX_PATH_LEN];
     snprintf(dnd_path, sizeof(dnd_path), "%s/dnd_gameplay", MODULE_CONFIG);
@@ -348,13 +348,13 @@ void apex_mode() {
         closedir(dir);
     }
         
-    // SOC-specific apex tweaks
+    // SOC-specific esport tweaks
     switch (SOC) {
-        case 1: mediatek_apex(); break;
-        case 2: snapdragon_apex(); break;
-        case 3: exynos_apex(); break;
-        case 4: unisoc_apex(); break;
-        case 5: tensor_apex(); break;
+        case 1: mediatek_esport(); break;
+        case 2: snapdragon_esport(); break;
+        case 3: exynos_esport(); break;
+        case 4: unisoc_esport(); break;
+        case 5: tensor_esport(); break;
     }
 }
 

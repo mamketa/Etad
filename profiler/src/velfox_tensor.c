@@ -18,8 +18,8 @@
 #include "velfox_cpufreq.h"
 #include "velfox_devfreq.h"
 
-// Apex mode
-void tensor_apex() {
+// Esport mode
+void tensor_esport() {
     // Find GPU path
     DIR *dir = opendir("/sys/devices/platform");
     if (dir) {

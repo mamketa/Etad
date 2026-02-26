@@ -18,8 +18,8 @@
 #include "velfox_cpufreq.h"
 #include "velfox_devfreq.h"
 
-// Apex mode
-void unisoc_apex() {
+// Esport mode
+void unisoc_esport() {
     // Find GPU path
     DIR *dir = opendir("/sys/class/devfreq");
     if (dir) {

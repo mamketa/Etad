@@ -18,8 +18,8 @@
 #include "velfox_cpufreq.h"
 #include "velfox_devfreq.h"
 
-// Apex mode
-void snapdragon_apex() {
+// Esport mode
+void snapdragon_esport() {
     // Qualcomm CPU Bus and DRAM frequencies
     if (DEVICE_MITIGATION == 0) {
         DIR *dir = opendir("/sys/class/devfreq");

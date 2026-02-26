@@ -18,8 +18,8 @@
 #include "velfox_cpufreq.h"
 #include "velfox_devfreq.h"
 
-// Apex Mode
-void mediatek_apex() {
+// Esport Mode
+void mediatek_esport() {
     // PPM policies
     if (file_exists("/proc/ppm/policy_status")) {
         FILE *fp = fopen("/proc/ppm/policy_status", "r");

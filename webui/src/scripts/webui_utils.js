@@ -125,7 +125,7 @@ const getCurrentProfile = async () => {
 
   switch(output) {
     case "0": profile = "Initializing"; break;
-    case "1": profile = "Apex"; break;
+    case "1": profile = "Esport"; break;
     case "2": profile = "Adaptive"; break;
     case "3": profile = "Efficiency"; break;
     default: profile = "Unknown"; break;

@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
         if (gamestart && get_screenstate() && mlbb_is_running != MLBB_RUN_BG) {
             // Bail out if we already on performance profile
             // However we will pass this if need_profile_checkup was true
-            if (!need_profile_checkup && cur_mode == APEX_MODE)
+            if (!need_profile_checkup && cur_mode == ESPORT_MODE)
                 continue;
 
             // Get PID and check if the game is "real" running program
@@ -177,12 +177,12 @@ int main(int argc, char* argv[]) {
                 continue;
             }
 
-            cur_mode = APEX_MODE;
+            cur_mode = ESPORT_MODE;
             need_profile_checkup = false;
-            toast("Activating apex mode");
-            run_profiler(APEX_MODE);
+            toast("Activating esport mode");
+            run_profiler(ESPORT_MODE);
             set_priority(game_pid);
-            log_velfox(LOG_INFO, "Activating apex mode for %s", gamestart);
+            log_velfox(LOG_INFO, "Activating esport mode for %s", gamestart);
         } else if (get_low_power_state()) {
             // Bail out if we already on efficiency mode 
             if (cur_mode == EFFICIENCY_MODE)

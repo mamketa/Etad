@@ -5,7 +5,7 @@
 #include "velfox_soc.h"
 
 void perfcommon();
-void apex_mode();
+void esport_mode();
 void adaptive_mode();
 void efficiency_mode();
 void set_dnd(int mode);

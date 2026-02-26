@@ -18,8 +18,8 @@
 #include "velfox_cpufreq.h"
 #include "velfox_devfreq.h"
 
-// Apex mode
-void exynos_apex() {
+// Esport mode
+void exynos_esport() {
     // GPU Frequency
     const char *gpu_path = "/sys/kernel/gpu";
     if (file_exists(gpu_path)) {
