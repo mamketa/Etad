@@ -65,6 +65,13 @@ void snapdragon_esport() {
         devfreq_mid_perf(gpu_path);
     }
     
+    // Disable Limiter Adreno
+    apply("0", "/sys/class/kgsl/kgsl-3d0/throttling");
+    apply("0", "/sys/class/kgsl/kgsl-3d0/thermal_pwrlevel");
+    
+    // Enable Adreno Boost
+    apply("1", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+    
     // Force GPU clock on/off
     apply("1", "/sys/class/kgsl/kgsl-3d0/force_clk_on");
     
@@ -76,9 +83,6 @@ void snapdragon_esport() {
         
     // Disable GPU Performance Counters
     apply("0", "/sys/class/kgsl/kgsl-3d0/perfcounter");
-
-    // Enable Adreno Boost
-    apply("1", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
 }
 
 // Balanced mode
@@ -114,7 +118,14 @@ void snapdragon_balanced() {
     
     // Revert GPU tweak
     devfreq_unlock("/sys/class/kgsl/kgsl-3d0/devfreq");
+
+    // Enaable Limiter Adreno
+    apply("1", "/sys/class/kgsl/kgsl-3d0/throttling");
+    apply("1", "/sys/class/kgsl/kgsl-3d0/thermal_pwrlevel");
     
+    // Disable Adreno Boost
+    apply("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+        
     // Free GPU clock on/off
     apply("0", "/sys/class/kgsl/kgsl-3d0/force_clk_on");
     
@@ -125,16 +136,20 @@ void snapdragon_balanced() {
     apply("1", "/sys/class/kgsl/kgsl-3d0/bus_split");
     
     // Disable GPU Performance Counters
-    apply("0", "/sys/class/kgsl/kgsl-3d0/perfcounter");
-
-    // Disable Adreno Boost
-    apply("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+    apply("0", "/sys/class/kgsl/kgsl-3d0/perfcounter");    
 }
 
 // Efficiency mode
 void snapdragon_efficiency() {
     // GPU Frequency
     devfreq_min_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+    
+    // Enable Limiter Adreno
+    apply("1", "/sys/class/kgsl/kgsl-3d0/throttling");
+    apply("1", "/sys/class/kgsl/kgsl-3d0/thermal_pwrlevel");
+    
+    // Disable Adreno Boost
+    apply("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
     
     // Free GPU clock on/off
     apply("0", "/sys/class/kgsl/kgsl-3d0/force_clk_on");
@@ -146,8 +161,5 @@ void snapdragon_efficiency() {
     apply("1", "/sys/class/kgsl/kgsl-3d0/bus_split");
         
     // Disable GPU Performance Counters
-    apply("0", "/sys/class/kgsl/kgsl-3d0/perfcounter");
-
-    // Disable Adreno Boost
-    apply("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+    apply("0", "/sys/class/kgsl/kgsl-3d0/perfcounter");    
 }

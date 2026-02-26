@@ -339,11 +339,7 @@ void esport_mode() {
         }
         closedir(dir);
     }
-    
-    system("settings put system peak_refresh_rate 999");
-    system("settings put system min_refresh_rate 999");
-    system("settings put global low_power 0");
-        
+            
     // SOC-specific esport tweaks
     switch (SOC) {
         case 1: mediatek_esport(); break;
@@ -519,11 +515,7 @@ void balanced_mode() {
         }
         closedir(dir);
     }
-    
-    system("settings put system peak_refresh_rate 0");
-    system("settings put system min_refresh_rate 0");
-    system("settings put global low_power 0");
-       
+           
     // SOC-specific balanced tweaks
     switch (SOC) {
         case 1: mediatek_balanced(); break;
@@ -698,11 +690,7 @@ void efficiency_mode() {
         }
         closedir(dir);
     }
-    
-    system("settings put system peak_refresh_rate 0");
-    system("settings put system min_refresh_rate 0");
-    system("settings put global low_power 1");
-            
+                
     // SOC-specific efficiency tweaks
     switch (SOC) {
         case 1: mediatek_efficiency(); break;
