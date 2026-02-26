@@ -16,6 +16,11 @@
  
 #include "velfox_common.h"
 
+int file_exists(const char *path) {
+    if (!path) return 0;
+    return access(path, F_OK) == 0;
+}
+
 int read_int_from_file(const char *path) {
     FILE *fp = fopen(path, "r");
     if (!fp) return 0;
