@@ -111,16 +111,6 @@ void perfcommon() {
     // Limit max perf event processing time
     apply("3", "/proc/sys/kernel/perf_cpu_time_max_percent");
     
-    // Disable schedstats
-    apply("0", "/proc/sys/kernel/sched_schedstats");
-    
-    // Disable Oppo/Realme cpustats
-    apply("0", "/proc/sys/kernel/task_cpustats_enable");
-        
-    // Background Locality
-    apply("0", "/dev/cpuset/background/memory_spread_page");
-    apply("0", "/dev/cpuset/system-background/memory_spread_page");
-    
     // VM Writeback Control
     apply("0", "/proc/sys/vm/page-cluster");
     apply("15", "/proc/sys/vm/stat_interval");
@@ -128,12 +118,18 @@ void perfcommon() {
     apply("640", "/proc/sys/vm/extfrag_threshold");
     apply("22",  "/proc/sys/vm/watermark_scale_factor");
     
+    // Disable schedstats
+    apply("0", "/proc/sys/kernel/sched_schedstats");
+    
     // Disable Sched auto group
     apply("0", "/proc/sys/kernel/sched_autogroup_enabled");
     
     // Enable CRF
     apply("1", "/proc/sys/kernel/sched_child_runs_first");
     
+    // Disable Oppo/Realme cpustats
+    apply("0", "/proc/sys/kernel/task_cpustats_enable");
+                
     // Disable SPI CRC
     apply("0", "/sys/module/mmc_core/parameters/use_spi_crc");
     
@@ -147,7 +143,10 @@ void perfcommon() {
     
     // Reduce kernel log noise
     apply("0 0 0 0", "/proc/sys/kernel/printk");
-    apply("off", "/proc/sys/kernel/printk_devkmsg");
+    
+    // Background Locality
+    apply("0", "/dev/cpuset/background/memory_spread_page");
+    apply("0", "/dev/cpuset/system-background/memory_spread_page");        
     
     // Report max CPU capabilities
     apply("libunity.so, libil2cpp.so, libmain.so, libUE4.so, libgodot_android.so, libgdx.so, libgdx-box2d.so, libminecraftpe.so, libLive2DCubismCore.so, libyuzu-android.so, libryujinx.so, libcitra-android.so, libhdr_pro_engine.so, libandroidx.graphics.path.so, libeffect.so", "/proc/sys/kernel/sched_lib_name");

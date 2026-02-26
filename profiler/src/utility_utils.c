@@ -17,54 +17,73 @@
 #include "velfox_common.h"
 
 int file_exists(const char *path) {
-    return access(path, F_OK) == 0;
+    FILE *fp = fopen(path, "r");
+    if (fp) {
+        fclose(fp);
+        return 1;
+    }
+    return 0;
 }
 
 int read_int_from_file(const char *path) {
     FILE *fp = fopen(path, "r");
     if (!fp) return 0;
-    int value;
-    fscanf(fp, "%d", &value);
+    long long value = 0;
+    if (fscanf(fp, "%lld", &value) != 1)
+        value = 0;
     fclose(fp);
-    return value;
+    return (int)value;
 }
 
 void read_string_from_file(char *buffer, size_t size, const char *path) {
+    if (!buffer || size == 0) return;
     FILE *fp = fopen(path, "r");
     if (!fp) {
         buffer[0] = '\0';
         return;
     }
-    fgets(buffer, size, fp);
-    buffer[strcspn(buffer, "\n")] = '\0';
+    if (fgets(buffer, size, fp) == NULL) {
+        buffer[0] = '\0';
+    } else {
+        buffer[strcspn(buffer, "\n")] = '\0';
+    }
     fclose(fp);
 }
 
 int apply(const char *value, const char *path) {
-    if (!file_exists(path)) return 0;
-    chmod(path, 0644);
-    FILE *fp = fopen(path, "w");
-    if (!fp) {
-        chmod(path, 0444);
+    if (!value || !path)
         return 0;
+    char current[APPLY_BUF];
+    FILE *fp = fopen(path, "r");
+    if (fp) {
+        if (fgets(current, sizeof(current), fp)) {
+            current[strcspn(current, "\n")] = '\0';
+            if (strcmp(current, value) == 0) {
+                fclose(fp);
+                return 1;  // already same → skip write
+            }
+        }
+        fclose(fp);
     }
+    fp = fopen(path, "w");
+    if (!fp)
+        return 0;  // path not exist / not writable → silent skip
     fprintf(fp, "%s", value);
     fclose(fp);
-    chmod(path, 0444);
     return 1;
 }
 
 int write_file(const char *value, const char *path) {
-    if (!file_exists(path)) return 0;    
-    chmod(path, 0644);
-    FILE *fp = fopen(path, "w");
-    if (!fp) {
-        chmod(path, 0444);
+    if (!value || !path)
         return 0;
-    }
+
+    FILE *fp = fopen(path, "w");
+    if (!fp)
+        return 0;
+
     fprintf(fp, "%s", value);
     fclose(fp);
-    chmod(path, 0444);
+
     return 1;
 }
 
