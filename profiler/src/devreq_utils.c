@@ -18,6 +18,22 @@
 #include "velfox_cpufreq.h"
 #include "velfox_devfreq.h"
 
+/* Auto detect CPU count*/
+int get_cpu_count() {
+    int count = 0;
+    DIR *dir = opendir("/sys/devices/system/cpu");
+    if (!dir) return 0;
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+        if (strncmp(ent->d_name, "cpu", 3) == 0 &&
+            isdigit(ent->d_name[3])) {
+            count++;
+        }
+    }
+    closedir(dir);
+    return count;
+}
+
 int devfreq_max_perf(const char *path) {
     if (!file_exists(path)) return 0;
     char freq_path[MAX_PATH_LEN];

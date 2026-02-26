@@ -3,6 +3,9 @@
 
 #include "velfox_common.h"
 
+/* Auto detect CPU count*/
+int get_cpu_count(void);
+
 // CPU Governor functions
 void change_cpu_gov(const char *gov);
 

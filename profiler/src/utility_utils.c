@@ -16,8 +16,14 @@
  
 #include "velfox_common.h"
 
-int file_exists(const char *path) {
-    return access(path, F_OK) == 0;
+int read_int_from_file(const char *path) {
+    FILE *fp = fopen(path, "r");
+    if (!fp) return 0;
+    int value = 0;
+    if (fscanf(fp, "%d", &value) != 1)
+        value = 0;
+    fclose(fp);
+    return value;
 }
 
 int read_int_from_file(const char *path) {
@@ -80,17 +86,40 @@ int apply(const char *value, const char *path) {
 }
 
 int write_file(const char *value, const char *path) {
-    if (!file_exists(path)) return 0;    
-    chmod(path, 0644);
-    FILE *fp = fopen(path, "w");
-    if (!fp) {
-        chmod(path, 0444);
+    if (!path || !value) return 0;
+    if (access(path, F_OK) != 0)
         return 0;
+    FILE *fp;
+    char buf[256] = {0};
+    /* Check the contents first */
+    fp = fopen(path, "r");
+    if (fp) {
+        if (fgets(buf, sizeof(buf), fp)) {
+            buf[strcspn(buf, "\n")] = '\0';
+
+            if (strcmp(buf, value) == 0) {
+                fclose(fp);
+                return 1;
+            }
+        }
+        fclose(fp);
     }
-    fprintf(fp, "%s", value);
+    /* Try writing without chmod first */
+    fp = fopen(path, "w");
+    if (!fp) {
+        chmod(path, 0644);
+
+        fp = fopen(path, "w");
+        if (!fp) {
+            chmod(path, 0444);
+            return 0;
+        }
+    }
+    int ret = fprintf(fp, "%s", value);
+    fflush(fp);
     fclose(fp);
     chmod(path, 0444);
-    return 1;
+    return (ret < 0) ? 0 : 1;
 }
 
 int apply_ll(long long value, const char *path) {
