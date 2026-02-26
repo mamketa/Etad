@@ -26,15 +26,6 @@ int read_int_from_file(const char *path) {
     return value;
 }
 
-int read_int_from_file(const char *path) {
-    FILE *fp = fopen(path, "r");
-    if (!fp) return 0;
-    int value;
-    fscanf(fp, "%d", &value);
-    fclose(fp);
-    return value;
-}
-
 void read_string_from_file(char *buffer, size_t size, const char *path) {
     FILE *fp = fopen(path, "r");
     if (!fp) {
