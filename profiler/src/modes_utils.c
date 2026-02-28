@@ -101,8 +101,15 @@ void perfcommon() {
     apply("1", "/proc/sys/net/ipv4/tcp_ecn");
     apply("1", "/proc/sys/net/ipv4/tcp_window_scaling");
     apply("1", "/proc/sys/net/ipv4/tcp_moderate_rcvbuf");
-    apply("0", "/proc/sys/net/ipv4/tcp_timestamps");
     apply("3", "/proc/sys/net/ipv4/tcp_fastopen");
+    
+    // TCP buffer scaling
+    apply("4096 87380 33554432", "/proc/sys/net/ipv4/tcp_rmem");
+    apply("4096 65536 33554432", "/proc/sys/net/ipv4/tcp_wmem");
+
+    // Global socket limit
+    apply("33554432", "/proc/sys/net/core/rmem_max");
+    apply("33554432", "/proc/sys/net/core/wmem_max");
     
     // Limit max perf event processing time
     apply("3", "/proc/sys/kernel/perf_cpu_time_max_percent");
@@ -174,6 +181,13 @@ void esport_mode() {
     // Disable battery saver
     apply("N", "/sys/module/workqueue/parameters/power_efficient");
     
+    // Increase network device backlog
+    apply("3500", "/proc/sys/net/core/netdev_max_backlog");
+
+    // Adjust TCP auto-scaling buffer
+    apply("4096 131072 33554432", "/proc/sys/net/ipv4/tcp_rmem");
+    apply("4096 131072 33554432", "/proc/sys/net/ipv4/tcp_wmem");
+    
     // Disable split lock mitigation
     apply("0", "/proc/sys/kernel/split_lock_mitigate");
     
@@ -201,12 +215,7 @@ void esport_mode() {
 
     // Background Limits
     apply("64", "/dev/cpuctl/background/cpu.shares");
-    apply("64", "/dev/cpuctl/background-l/cpu.shares");
-
-    // System Background
     apply("96", "/dev/cpuctl/system-background/cpu.shares");
-    apply("96", "/dev/cpuctl/system-background-h/cpu.shares");
-    apply("96", "/dev/cpuctl/system-background-l/cpu.shares");
 
     // Services Priority
     apply("192", "/dev/cpuctl/nnapi-hal/cpu.shares");
@@ -270,14 +279,10 @@ void esport_mode() {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             char *name = ent->d_name;
-            if (
-                strstr(name, "ufshc") ||
-                strstr(name, "mmc") ||
-                strstr(name, "memlat") ||
-                strstr(name, "cpubw")
-                ) {
+            if (strstr(name, ".ufshc") || strstr(name, "mmc")) {
                 char path[MAX_PATH_LEN];
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", name);
+                
                 if (LITE_MODE == 1) {
                     devfreq_mid_perf(path);
                 } else {
@@ -360,6 +365,13 @@ void balanced_mode() {
     // Disable battery saver
     apply("N", "/sys/module/workqueue/parameters/power_efficient");
     
+    // Increase network device backlog
+    apply("3000", "/proc/sys/net/core/netdev_max_backlog");
+
+    // Adjust TCP auto-scaling buffer
+    apply("4096 87380 33554432", "/proc/sys/net/ipv4/tcp_rmem");
+    apply("4096 65536 33554432", "/proc/sys/net/ipv4/tcp_wmem");
+    
     // Enable split lock mitigation
     apply("1", "/proc/sys/kernel/split_lock_mitigate");
     
@@ -387,12 +399,7 @@ void balanced_mode() {
 
     // Background Limits
     apply("128", "/dev/cpuctl/background/cpu.shares");
-    apply("128", "/dev/cpuctl/background-l/cpu.shares");
-
-    // System Background
     apply("192", "/dev/cpuctl/system-background/cpu.shares");
-    apply("192", "/dev/cpuctl/system-background-h/cpu.shares");
-    apply("192", "/dev/cpuctl/system-background-l/cpu.shares");
 
     // Services Priority
     apply("192", "/dev/cpuctl/nnapi-hal/cpu.shares");
@@ -410,7 +417,7 @@ void balanced_mode() {
     apply("192", "/sys/fs/cgroup/uclamp/top-app.uclamp.min");
     apply("96",  "/sys/fs/cgroup/uclamp/foreground.uclamp.min");
 
-    // Keep backgroundl baseline
+    // Keep background baseline
     apply("32",  "/sys/fs/cgroup/uclamp/background.uclamp.min");
 
     // Sched Boost
@@ -456,12 +463,7 @@ void balanced_mode() {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             char *name = ent->d_name;
-            if (
-                strstr(name, "ufshc") ||
-                strstr(name, "mmc") ||
-                strstr(name, "memlat") ||
-                strstr(name, "cpubw")
-                ) {
+            if (strstr(name, ".ufshc") || strstr(name, "mmc")) {
                 char path[MAX_PATH_LEN];
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", name);
                 devfreq_unlock(path);
@@ -536,6 +538,13 @@ void efficiency_mode() {
     // Enable battery saver module
     apply("Y", "/sys/module/workqueue/parameters/power_efficient");
     
+    // Increase network device backlog
+    apply("2500", "/proc/sys/net/core/netdev_max_backlog");
+
+    // Adjust TCP auto-scaling buffer
+    apply("4096 65536 16777216", "/proc/sys/net/ipv4/tcp_rmem");
+    apply("4096 65536 16777216", "/proc/sys/net/ipv4/tcp_wmem");
+    
     // Enable split lock mitigation
     apply("1", "/proc/sys/kernel/split_lock_mitigate");
     
@@ -563,12 +572,7 @@ void efficiency_mode() {
 
     // Background Limits
     apply("128", "/dev/cpuctl/background/cpu.shares");
-    apply("128", "/dev/cpuctl/background-l/cpu.shares");
-
-    // System Background
     apply("128", "/dev/cpuctl/system-background/cpu.shares");
-    apply("128", "/dev/cpuctl/system-background-h/cpu.shares");
-    apply("128", "/dev/cpuctl/system-background-l/cpu.shares");
 
     // Services Priority
     apply("128", "/dev/cpuctl/nnapi-hal/cpu.shares");
@@ -632,12 +636,7 @@ void efficiency_mode() {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             char *name = ent->d_name;
-            if (
-                strstr(name, "ufshc") ||
-                strstr(name, "mmc") ||
-                strstr(name, "memlat") ||
-                strstr(name, "cpubw")
-                ) {
+            if (strstr(name, ".ufshc") || strstr(name, "mmc")) {
                 char path[MAX_PATH_LEN];
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", name);
                 devfreq_min_perf(path);
