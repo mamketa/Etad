@@ -183,6 +183,9 @@ void esport_mode() {
     
     // Increase network device backlog
     apply("3500", "/proc/sys/net/core/netdev_max_backlog");
+    
+    // TCP Burst Responsiveness
+    apply("0", "/proc/sys/net/ipv4/tcp_slow_start_after_idle");
 
     // Adjust TCP auto-scaling buffer
     apply("4096 131072 33554432", "/proc/sys/net/ipv4/tcp_rmem");
@@ -367,10 +370,13 @@ void balanced_mode() {
     
     // Increase network device backlog
     apply("3000", "/proc/sys/net/core/netdev_max_backlog");
+    
+    // TCP Burst Responsiveness
+    apply("1", "/proc/sys/net/ipv4/tcp_slow_start_after_idle");
 
     // Adjust TCP auto-scaling buffer
-    apply("4096 87380 33554432", "/proc/sys/net/ipv4/tcp_rmem");
-    apply("4096 65536 33554432", "/proc/sys/net/ipv4/tcp_wmem");
+    apply("4096 131072 33554432", "/proc/sys/net/ipv4/tcp_rmem");
+    apply("4096 98304 33554432", "/proc/sys/net/ipv4/tcp_wmem");
     
     // Enable split lock mitigation
     apply("1", "/proc/sys/kernel/split_lock_mitigate");
@@ -540,6 +546,9 @@ void efficiency_mode() {
     
     // Increase network device backlog
     apply("2500", "/proc/sys/net/core/netdev_max_backlog");
+    
+    // TCP Burst Responsiveness
+    apply("1", "/proc/sys/net/ipv4/tcp_slow_start_after_idle");
 
     // Adjust TCP auto-scaling buffer
     apply("4096 65536 16777216", "/proc/sys/net/ipv4/tcp_rmem");
